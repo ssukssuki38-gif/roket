@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>우주 탐사 계획 세우기</title>
+<style>
+:root{
+  --bg:#f5f7ff; --card:#fff; --ink:#1b2140; --sub:#55607f; --line:#dde3f3;
+  --pri:#4c3fd1; --pri-soft:#ece9ff; --ok:#1f8a4c; --ok-soft:#e2f6e9; --warn:#a85a00; --warn-soft:#fff1d6; --red:#c92a2a;
+  --space:#0b1433;
+  --fs:17px;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;line-height:1.6}
+body.demo{--fs:22px}
+header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+.hbar{display:flex;align-items:center;gap:8px;max-width:900px;margin:0 auto;padding:8px 14px}
+.hbar h1{font-size:1.05rem;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who{font-size:.8rem;color:var(--sub);white-space:nowrap;max-width:30vw;overflow:hidden;text-overflow:ellipsis}
+.tbtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 10px;font-size:.8rem;cursor:pointer;color:var(--ink);min-height:38px}
+nav{max-width:900px;margin:0 auto;display:flex;gap:6px;overflow-x:auto;padding:0 14px 8px}
+nav button{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:.8rem;color:var(--sub);cursor:pointer;min-height:38px}
+nav button.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:700}
+nav button.done::after{content:" ✓"}
+main{max-width:900px;margin:0 auto;padding:14px 14px 110px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(60,50,160,.05)}
+h2{font-size:1.25rem;margin:0 0 8px}
+h3{font-size:1.05rem;margin:14px 0 6px}
+p{margin:6px 0}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--pri-soft);color:var(--pri);margin-bottom:6px}
+.hint{font-size:.86rem;color:var(--sub)}
+.q{background:var(--pri-soft);border-radius:14px;padding:12px 14px;font-weight:700;margin:8px 0}
+label.fl{display:block;font-weight:700;margin:14px 0 4px}
+textarea,input[type=text]{width:100%;font:inherit;font-size:1rem;border:2px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;color:var(--ink)}
+textarea{min-height:90px;resize:vertical}
+textarea:focus,input:focus{outline:none;border-color:var(--pri)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:14px;padding:12px 18px;font:inherit;font-weight:700;cursor:pointer;min-height:50px;background:var(--pri);color:#fff}
+.btn.soft{background:var(--pri-soft);color:var(--pri)}
+.btn.ghost{background:#fff;border:2px solid var(--line);color:var(--ink)}
+.btn.big{width:100%;font-size:1.1rem;min-height:58px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:560px){.grid3{grid-template-columns:1fr 1fr}}
+@media(min-width:720px){.grid2{grid-template-columns:1fr 1fr}}
+@media(min-width:860px){.grid3{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:480px){.hbar h1{flex:0 0 auto;font-size:0}.hbar h1::first-letter{font-size:1.2rem}.who{flex:1}}
+.pick{display:block;width:100%;text-align:left;border:2px solid var(--line);border-radius:16px;padding:12px;background:#fff;cursor:pointer;font:inherit;color:var(--ink)}
+.pick.on{border-color:var(--pri);background:var(--pri-soft);box-shadow:0 0 0 2px var(--pri) inset}
+.pick .ttl{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.05rem}
+.pick .ttl svg{width:52px;height:52px;flex:0 0 auto}
+.pick .mark{margin-left:auto;font-size:.8rem;font-weight:700;color:var(--pri);visibility:hidden}
+.pick.on .mark{visibility:visible}
+.pick ul{margin:6px 0 0;padding-left:20px;font-size:.88rem}
+.pick li.plus::marker{content:"＋ ";color:var(--ok)}
+.pick li.minus::marker{content:"－ ";color:var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.chip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font:inherit;font-size:.92rem;cursor:pointer;color:var(--ink);min-height:44px}
+.chip.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:700}
+.chip.on::before{content:"✓ "}
+.choices{display:grid;gap:8px;margin-top:8px}
+.choice{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;background:#fff;font:inherit;text-align:left;color:var(--ink);min-height:50px}
+.choice .mk{width:28px;height:28px;border-radius:50%;border:2px solid var(--sub);flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700}
+.choice.on{border-color:var(--pri);background:var(--pri-soft);font-weight:700}
+.choice.right{border-color:var(--ok);background:var(--ok-soft)}
+.choice.right .mk::after{content:"○"}
+.choice.wrong{border-color:var(--red);background:#fff0f0}
+.fb{border-radius:12px;padding:10px 12px;margin-top:8px;font-size:.92rem}
+.fb.ok{background:var(--ok-soft)}
+.fb.no{background:var(--warn-soft)}
+.case{border:2px solid var(--line);border-radius:16px;padding:12px;background:#fff;cursor:pointer;text-align:left;font:inherit;color:var(--ink);width:100%}
+.case.on{border-color:var(--pri);background:var(--pri-soft)}
+.case .yr{font-size:.78rem;font-weight:700;color:var(--sub)}
+.case b{display:block;font-size:1rem}
+.case p{font-size:.88rem;margin:4px 0 0}
+.case .mark{float:right;font-size:.78rem;font-weight:800;color:var(--pri);visibility:hidden}
+.case.on .mark{visibility:visible}
+.alert{border-radius:14px;padding:10px 12px;font-size:.9rem;margin-top:8px;border:2px dashed var(--warn);background:var(--warn-soft)}
+.alert b{color:var(--warn)}
+.okbox{border-radius:14px;padding:10px 12px;font-size:.9rem;margin-top:8px;background:var(--ok-soft)}
+.window{background:var(--space);border-radius:22px;padding:6px;overflow:hidden}
+.window svg{display:block;width:100%;height:auto}
+.terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.term{border:2px solid var(--line);border-radius:14px;padding:12px;background:#fff;cursor:pointer;text-align:left;font:inherit;color:var(--ink);min-height:96px}
+.term b{font-size:1.05rem;display:block}
+.term .back{display:none;font-size:.9rem}
+.term.flip .back{display:block}
+.term.flip .front{display:none}
+.self{width:100%;border-collapse:collapse;font-size:.9rem}
+.self td,.self th{border:1px solid var(--line);padding:8px;text-align:center}
+.self td:first-child{text-align:left}
+.self button{border:2px solid var(--line);background:#fff;border-radius:10px;padding:6px 8px;font:inherit;font-size:.85rem;cursor:pointer;min-width:64px;min-height:40px;color:var(--ink)}
+.self button.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:700}
+.result{white-space:pre-wrap;font-size:.85rem;background:#f8f9fd;border:1px dashed var(--line);border-radius:12px;padding:12px;max-height:320px;overflow:auto}
+.notice{background:var(--warn-soft);border-radius:12px;padding:10px 12px;font-size:.88rem}
+.bottom{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);z-index:20}
+.bottom .in{max-width:900px;margin:0 auto;display:flex;gap:10px;padding:10px 14px}
+.bottom .btn{flex:1}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#1b2140;color:#fff;padding:10px 16px;border-radius:12px;font-size:.9rem;opacity:0;transition:opacity .25s;pointer-events:none;z-index:50;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+.modal{position:fixed;inset:0;background:rgba(20,25,60,.45);display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+.modal.show{display:flex}
+.modal .box{background:#fff;border-radius:18px;padding:20px;max-width:460px;width:100%}
+.colorrow{display:flex;gap:8px;flex-wrap:wrap}
+.colorrow button{border:3px solid var(--line);border-radius:12px;padding:6px 12px;font:inherit;font-size:.88rem;cursor:pointer;background:#fff;min-height:44px;color:var(--ink)}
+.colorrow button.on{border-color:var(--ink);font-weight:700}
+.colorrow i{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:4px}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbar">
+    <h1>🚀 우주 탐사 계획 세우기</h1>
+    <span class="who" id="who"></span>
+    <button class="tbtn" id="demoBtn">시연 모드</button>
+    <button class="tbtn" id="resetBtn">처음부터</button>
+  </div>
+  <nav id="nav"></nav>
+</header>
+<main id="main"></main>
+<div class="bottom"><div class="in">
+  <button class="btn ghost" id="prevBtn">◀ 이전</button>
+  <button class="btn" id="nextBtn">다음 ▶</button>
+</div></div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+
+<script>
+/* ===== 기본 자료 ===== */
+const KEY="space_plan_v1";
+const STEPS=[
+  {id:"start",t:"시작"},{id:"open",t:"생각 열기"},{id:"method",t:"① 탐사 방법"},{id:"result",t:"② 탐사 성과"},
+  {id:"target",t:"③ 대상과 목적"},{id:"plan",t:"④ 탐사 계획"},{id:"poster",t:"⑤ 미션 포스터"},{id:"quiz",t:"용어·퀴즈"},{id:"end",t:"성찰·제출"}
+];
+const METHODS={
+  tel:{name:"천체 망원경",can:"지구에서 별, 행성, 은하를 관측해요.",plus:["만들고 고치기 쉬워요","비용이 적게 들어요"],minus:["대기의 흔들림과 빛 공해로 상이 흐려질 수 있어요","천체에 직접 가서 조사할 수는 없어요"]},
+  stel:{name:"우주 망원경",can:"지구 대기 밖 우주 공간에서 별과 은하를 관측해요.",plus:["대기의 방해 없이 선명하게 볼 수 있어요"],minus:["만들고 쏘아 올리는 비용이 커요","고장 나면 고치기 어려워요","천체에 직접 가서 조사할 수는 없어요"]},
+  crew:{name:"유인 우주 탐사선",can:"사람이 직접 타고 가서 조사해요.",plus:["사람이 현장에서 판단하고 여러 가지 일을 할 수 있어요"],minus:["공기, 물, 음식 같은 생명 유지 장치가 필요해 무겁고 비싸요","위험해서 안전이 가장 중요해요","먼 곳까지 가기 어려워요"]},
+  robot:{name:"무인 우주 탐사선",can:"사람 없이 탐사선이나 로봇이 가서 조사해요.",plus:["사람이 갈 수 없는 먼 곳, 위험한 곳도 갈 수 있어요","유인 탐사보다 비용이 적어요"],minus:["지구와 신호를 주고받는 데 시간이 걸려요","예상하지 못한 상황에 대처하기 어려워요"]}
+};
+const CASES=[
+  {id:"c01",m:"base",yr:"1957 · 소련",t:"스푸트니크 1호",d:"인류 최초의 인공위성. 지구 궤도를 돌며 신호를 보냈고, 오늘날 GPS와 기상 위성 기술의 출발점이 되었어요."},
+  {id:"c02",m:"crew",yr:"1969 · 미국",t:"아폴로 11호 달 착륙",d:"사람이 처음 달에 내렸어요. 레이저 반사경으로 지구-달 거리를 정확히 재고, 가져온 월석으로 태양계의 나이를 연구했어요."},
+  {id:"c03",m:"robot",yr:"1977 · 미국",t:"보이저 1·2호",d:"목성, 토성, 천왕성, 해왕성을 지나며 사진을 보냈고, 지금은 태양계 밖 공간을 날아가는 가장 먼 탐사선이에요."},
+  {id:"c04",m:"stel",yr:"1990 / 2021 · 미국·유럽",t:"허블·제임스 웹 우주 망원경",d:"대기 밖에서 선명하게 관측해요. 아주 먼 은하를 관측해 우주의 나이와 팽창을 연구하고 있어요."},
+  {id:"c05",m:"robot",yr:"2020 발사 · 미국",t:"퍼서비어런스와 인제뉴어티",d:"옛날 호수였던 화성 지형에서 생명체의 흔적을 찾으려고 암석 표본을 채취했고, 작은 헬리콥터가 다른 행성에서 처음 날았어요."},
+  {id:"c06",m:"crew",yr:"1998 건설 시작 · 여러 나라 협력",t:"국제 우주 정거장(ISS)",d:"지구 궤도에 있는 사람이 머무는 기지예요. 무중력 환경에서 의학, 신소재 등 여러 과학 실험을 해요."},
+  {id:"c07",m:"robot",yr:"2014 / 2016 발사 · 일본·미국",t:"하야부사 2호와 오시리스-렉스",d:"소행성에서 표본을 채취해 지구로 가져왔고, 물과 생명체를 이루는 물질의 단서를 찾았어요."},
+  {id:"c08",m:"base",yr:"1992 · 대한민국",t:"우리별 1호",d:"우리나라 첫 인공위성. 지구 표면을 촬영하고 우주 방사선을 측정했어요."},
+  {id:"c09",m:"base",yr:"2022 · 대한민국",t:"누리호",d:"우리 기술로 만든 한국형 발사체. 인공위성을 우리 힘으로 우주에 보낼 수 있게 되었어요."},
+  {id:"c10",m:"robot",yr:"2022 · 대한민국",t:"다누리",d:"우리나라 첫 달 탐사선. 달 궤도를 돌며 달 표면을 촬영하고 자원 지도를 만들고 있어요."},
+  {id:"c11",m:"tel",yr:"오래전부터 · 세계 여러 나라",t:"지상의 천체 망원경",d:"지구에서 천체 망원경으로 맨눈으로 보기 어려운 행성, 별, 은하를 관측해 왔어요. 우주 탐사의 첫걸음이에요."}
+];
+const TARGETS={
+  orbit:{name:"지구 궤도",info:"지구에서 가장 가까운 우주예요. 국제 우주 정거장이 약 400 km 높이에서 지구를 돌고 있어요."},
+  moon:{name:"달",info:"지구에서 가장 가까운 천체로 약 38만 km 떨어져 있어요. 공기가 없어요."},
+  mars:{name:"화성",info:"붉은 행성. 대기가 매우 얇고, 옛날에 물이 흘렀던 흔적이 있어요. 아직 사람이 간 적은 없어요."},
+  ast:{name:"소행성",info:"태양계가 처음 생길 때의 물질을 간직하고 있어 '태양계의 타임캡슐'이라고 불려요."},
+  outer:{name:"목성·토성과 그 위성",info:"지구에서 매우 멀고 아주 추워요. 탐사선이 가는 데 여러 해가 걸려요."},
+  deep:{name:"태양계 밖 먼 우주",info:"별과 은하가 있는 먼 우주예요. 탐사선이 직접 가기는 매우 어렵고, 주로 망원경으로 관측해요."}
+};
+const PURPOSES=["생명체의 흔적 찾기","자원 조사·채굴","태양계와 우주의 기원 밝히기","사람이 머물 기지 만들기","천체의 모습 관측하기","지구 관측(날씨·환경)"];
+const ACTS=["사진 촬영·관측","궤도를 돌며 지도 만들기","표면에 착륙하기","로버로 이동하며 조사","표본(암석·흙) 채취","표본을 지구로 가져오기","사람이 머무는 기지 짓기","오랫동안 관측하기"];
+const ACT_SCOPE=["사진 촬영·관측","오랫동안 관측하기","궤도를 돌며 지도 만들기"];
+// 우주 탐사 기술 카드: m=추천 탐사 방법, t=추천 탐사 대상, p=추천 목적
+const TECHS=[
+  {id:"t01",ic:"♻️",n:"재사용 발사체",d:"예전에는 발사체를 한 번 쓰고 버렸어요. 우주로 올라갔던 발사체를 다시 땅에 세워 착륙시켜 여러 번 쓰면 발사 비용을 크게 줄일 수 있어요.",m:["crew","robot","stel"],t:[]},
+  {id:"t02",ic:"🫁",n:"생명 유지 장치",d:"우주선과 기지 안에서 산소를 만들고, 물과 공기를 깨끗하게 걸러 다시 쓰는 장치예요. 사람이 오래 머물려면 꼭 필요해요.",m:["crew"],t:[],p:["사람이 머물 기지 만들기"]},
+  {id:"t03",ic:"🛡️",n:"우주 방사선 막기",d:"지구는 대기와 자기장이 해로운 우주 방사선을 막아 줘요. 우주에서는 이것이 없어서 두꺼운 벽, 특수 우주복, 땅속 기지 등으로 몸을 지켜야 해요.",m:["crew"],t:["moon","mars"]},
+  {id:"t04",ic:"🤖",n:"스스로 판단하는 탐사 로봇 (인공지능)",d:"먼 곳의 탐사선에 명령을 보내면 신호가 늦게 도착해요. 그래서 로봇이 스스로 길을 찾고 장애물을 피하며 판단하는 기술이 필요해요.",m:["robot"],t:["mars","outer"]},
+  {id:"t05",ic:"📡",n:"먼 우주 통신",d:"아주 멀리서 오는 약한 신호도 받을 수 있는 커다란 안테나와 통신 기술이에요. 멀리 갈수록 신호가 약해지고 늦어져요.",m:["robot","crew"],t:["mars","outer","deep"]},
+  {id:"t06",ic:"🔋",n:"오래가는 전기 공급 장치",d:"태양 전지는 햇빛으로 전기를 만들지만, 태양에서 먼 곳이나 긴 밤에는 햇빛이 부족해요. 보이저처럼 오래 전기를 만드는 원자력 전지 같은 장치가 필요해요.",m:["robot"],t:["moon","outer","deep"]},
+  {id:"t07",ic:"⛏️",n:"현지 자원 활용",d:"모든 것을 지구에서 가져가면 너무 무겁고 비싸요. 달이나 화성의 흙과 얼음에서 물, 산소, 건축 재료를 얻어 그 자리에서 쓰는 기술이에요.",m:["crew","robot"],t:["moon","mars","ast"],p:["자원 조사·채굴","사람이 머물 기지 만들기"]},
+  {id:"t08",ic:"🪂",n:"정확하고 부드러운 착륙",d:"낙하산, 역추진 엔진, 에어백 등을 이용해 원하는 장소에 부서지지 않게 내려앉는 기술이에요. 대기가 얇은 화성은 착륙이 특히 어려워요.",m:["crew","robot"],t:["moon","mars"]},
+  {id:"t09",ic:"📦",n:"표본 귀환 캡슐",d:"채취한 암석과 흙을 오염되지 않게 담아 지구로 가져오는 기술이에요. 지구 대기로 들어올 때 생기는 아주 높은 열을 견뎌야 해요.",m:["robot","crew"],t:["ast","moon","mars"],p:["생명체의 흔적 찾기","태양계와 우주의 기원 밝히기"]},
+  {id:"t10",ic:"🪐",n:"행성 중력 이용 비행",d:"행성 곁을 지나가며 그 중력을 이용해 속도와 방향을 바꾸는 방법이에요. 보이저도 이 방법으로 연료를 아끼며 먼 행성까지 갔어요.",m:["robot"],t:["outer","deep"]},
+  {id:"t11",ic:"🔭",n:"펼치는 거대 거울",d:"큰 거울일수록 더 어두운 천체를 볼 수 있지만 로켓에 다 들어가지 않아요. 제임스 웹 우주 망원경처럼 거울을 접어 실어 보낸 뒤 우주에서 펼치는 기술이에요.",m:["stel"],t:["deep"]},
+  {id:"t12",ic:"🏔️",n:"지상 관측소 기술",d:"공기가 맑고 높은 산이나 사막에 관측소를 짓고, 대기의 흔들림을 바로잡는 장치를 달아 지상 망원경으로도 선명하게 보는 기술이에요.",m:["tel"],t:["deep"]},
+  {id:"t13",ic:"🧹",n:"우주 쓰레기 줄이기",d:"수명이 다한 인공위성과 부서진 조각이 지구 궤도를 떠돌며 다른 위성과 부딪칠 위험이 있어요. 쓰레기를 붙잡아 대기로 떨어뜨려 태우는 등의 기술이 연구되고 있어요.",m:[],t:["orbit"],p:["지구 관측(날씨·환경)"]}
+];
+function techRec(x){return (S.method&&x.m.includes(S.method))&&(!x.t.length||x.t.includes(S.target))||(x.t.includes(S.target)&&!x.m.length)||(x.p||[]).some(p=>S.purposes.includes(p))}
+function techCards(){
+  const list=[...TECHS].sort((a,b)=>techRec(b)-techRec(a));
+  return list.map(x=>`<button class="case ${S.techs.includes(x.id)?'on':''}" data-tech="${x.id}"><span class="mark">✓ 선택</span><span class="yr">${techRec(x)?"★ 추천":"&nbsp;"}</span><b>${x.ic} ${x.n}</b><p>${x.d}</p></button>`).join("");
+}
+const EXPERTS=["천문학자","로봇 공학자","생명과학자","지질학자","의사","통신 공학자","재료 공학자","환경 전문가"];
+const COLORS={violet:["보라","#7c6cff"],orange:["주황","#ff8a3d"],teal:["청록","#20c3b0"],gold:["노랑","#ffcc33"]};
+const LIFE=["스마트폰 지도(GPS)","일기 예보","가정용 정수기","메모리폼 베개·매트리스","실시간 위성 방송"];
+const QUIZ=[
+  {q:"우주에 관한 정보를 얻기 위해 천체 망원경, 우주 탐사선 등을 이용하여 우주를 관측하고 조사하는 활동은?",o:["우주 탐사","우주 여행","천체 관측회","인공위성"],a:0},
+  {q:"우리나라의 첫 인공위성은?",o:["다누리","우리별 1호","누리호","나로호"],a:1},
+  {q:"우리나라 탐사선 다누리가 궤도를 돌며 탐사하는 천체는?",o:["화성","금성","달","소행성"],a:2},
+  {q:"우주 망원경을 비싼 비용을 들여 우주에 쏘아 올리는 가장 큰 까닭은?",o:["천체에 더 가까이 가려고","대기의 방해 없이 선명하게 관측하려고","망원경을 더 크게 만들려고","지구를 촬영하려고"],a:1},
+  {q:"사람이 가기에 너무 먼 행성을 직접 조사하려고 할 때 가장 알맞은 방법은?",o:["천체 망원경","유인 우주 탐사선","무인 우주 탐사선","국제 우주 정거장"],a:2}
+];
+const TERMS=[
+  ["우주 탐사","우주에 관한 정보를 얻기 위해 천체 망원경, 우주 탐사선 등을 이용하여 우주를 관측하고 조사하는 활동"],
+  ["천체 망원경","지구에서 천체를 관측하는 망원경. 대기의 영향을 받아요."],
+  ["우주 망원경","우주 공간에 띄운 망원경. 대기의 방해 없이 선명하게 관측해요. (예: 허블, 제임스 웹)"],
+  ["유인 우주 탐사선","사람이 타고 가서 조사하는 탐사선 (예: 아폴로 11호)"],
+  ["무인 우주 탐사선","사람 없이 가서 조사하는 탐사선 (예: 보이저, 다누리)"],
+  ["인공위성","사람이 만들어 지구 둘레를 돌게 한 물체 (예: 스푸트니크 1호, 우리별 1호)"]
+];
+const SELF=[["지식·이해","우주 탐사 성과를 설명할 수 있다."],["과정·기능","우주 탐사 계획을 세우기 위해 자료를 조사하고 적극적으로 계획을 세웠다."],["가치·태도","우주를 탐사할 때 과학 기술의 중요성과 역할을 알게 되었다."]];
+const LEVELS=[["○","잘함"],["△","보통"],["☆","더 노력"]];
+
+function blank(){return {step:0,sid:"",name:"",team:"",members:"",openWrite:"",life:[],telQ:-1,method:"",cases:[],learned:"",target:"",purposes:[],purposeText:"",acts:[],plan:"",tech:"",techs:[],experts:[],expertWhy:"",mission:"",color:"violet",quiz:{},terms:[],self:{},refl:"",junk:"",demo:false}}
+let S=blank();
+try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(blank(),JSON.parse(raw))}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2300)}
+function toggle(arr,v){const i=arr.indexOf(v);if(i<0)arr.push(v);else arr.splice(i,1)}
+
+/* ===== 그림 ===== */
+function mIcon(k,s=52){
+  const c={tel:`<line x1="14" y1="48" x2="26" y2="30" stroke="#55607f" stroke-width="3"/><line x1="38" y1="48" x2="26" y2="30" stroke="#55607f" stroke-width="3"/><line x1="26" y1="48" x2="26" y2="30" stroke="#55607f" stroke-width="3"/><rect x="8" y="18" width="38" height="12" rx="5" transform="rotate(-25 26 24)" fill="#4c3fd1"/><rect x="40" y="6" width="9" height="16" rx="3" transform="rotate(-25 26 24)" fill="#ffcc33"/>`,
+    stel:`<rect x="18" y="10" width="18" height="34" rx="4" fill="#c7ccd8" stroke="#55607f" stroke-width="2"/><rect x="2" y="20" width="14" height="14" fill="#4c3fd1"/><rect x="38" y="20" width="14" height="14" fill="#4c3fd1"/><ellipse cx="27" cy="10" rx="9" ry="3" fill="#1b2140"/>`,
+    crew:`<path d="M14,44 L20,14 Q27,4 34,14 L40,44Z" fill="#eef0f6" stroke="#55607f" stroke-width="2"/><circle cx="27" cy="24" r="6" fill="#4c3fd1" stroke="#fff" stroke-width="2"/><rect x="12" y="42" width="30" height="6" rx="2" fill="#1b2140"/><path d="M20,50 Q27,62 34,50Z" fill="#ff8a3d"/>`,
+    robot:`<rect x="10" y="20" width="34" height="16" rx="4" fill="#ffcc33" stroke="#55607f" stroke-width="2"/><line x1="36" y1="20" x2="40" y2="8" stroke="#55607f" stroke-width="3"/><circle cx="41" cy="7" r="4" fill="#4c3fd1"/><circle cx="16" cy="42" r="6" fill="#1b2140"/><circle cx="27" cy="42" r="6" fill="#1b2140"/><circle cx="38" cy="42" r="6" fill="#1b2140"/>`};
+  return `<svg viewBox="0 0 54 56" width="${s}" height="${s}" aria-hidden="true">${c[k]||""}</svg>`;
+}
+function targetArt(k,cx,cy,r){
+  switch(k){
+    case "orbit":return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#2f7ae5"/><path d="M${cx-r*.6},${cy-r*.3} q${r*.3},-${r*.3} ${r*.6},-${r*.05} q${r*.1},${r*.3} -${r*.2},${r*.45} q-${r*.3},${r*.1} -${r*.4},-${r*.4}z M${cx+r*.1},${cy+r*.1} q${r*.4},-${r*.1} ${r*.55},${r*.2} q-${r*.1},${r*.35} -${r*.4},${r*.4}z" fill="#3fa35a"/><ellipse cx="${cx}" cy="${cy}" rx="${r*1.5}" ry="${r*.35}" fill="none" stroke="#9fd0ff" stroke-width="3" stroke-dasharray="8 7" transform="rotate(-15 ${cx} ${cy})"/><circle cx="${cx+r*1.35}" cy="${cy-r*.42}" r="${r*.09}" fill="#fff"/>`;
+    case "moon":return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#cfd1d8"/><g fill="#9a9ca6"><circle cx="${cx-r*.35}" cy="${cy-r*.2}" r="${r*.18}"/><circle cx="${cx+r*.3}" cy="${cy+r*.3}" r="${r*.13}"/><circle cx="${cx+r*.35}" cy="${cy-r*.4}" r="${r*.09}"/><circle cx="${cx-r*.2}" cy="${cy+r*.45}" r="${r*.08}"/></g>`;
+    case "mars":return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#d0592c"/><g fill="#9c3a18" opacity=".7"><ellipse cx="${cx-r*.3}" cy="${cy-r*.1}" rx="${r*.35}" ry="${r*.12}"/><ellipse cx="${cx+r*.25}" cy="${cy+r*.35}" rx="${r*.3}" ry="${r*.1}"/></g><ellipse cx="${cx}" cy="${cy-r*.88}" rx="${r*.3}" ry="${r*.1}" fill="#fff" opacity=".85"/>`;
+    case "ast":return `<path d="M${cx-r},${cy} Q${cx-r*.9},${cy-r*.8} ${cx-r*.1},${cy-r*.75} Q${cx+r*.8},${cy-r*.9} ${cx+r*.95},${cy-r*.1} Q${cx+r*.9},${cy+r*.7} ${cx+r*.1},${cy+r*.7} Q${cx-r*.9},${cy+r*.8} ${cx-r},${cy}Z" fill="#8a7563"/><g fill="#5f4f42"><circle cx="${cx-r*.3}" cy="${cy-r*.2}" r="${r*.15}"/><circle cx="${cx+r*.35}" cy="${cy+r*.2}" r="${r*.12}"/><circle cx="${cx+r*.1}" cy="${cy-r*.45}" r="${r*.07}"/></g>`;
+    case "outer":return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#d9a46b"/><g opacity=".85">${[-.6,-.25,.1,.45].map((y,i)=>`<rect x="${cx-r}" y="${cy+r*y}" width="${r*2}" height="${r*.14}" fill="${i%2?'#a8643a':'#f0d2a8'}"/>`).join("")}</g><ellipse cx="${cx+r*.35}" cy="${cy+r*.3}" rx="${r*.18}" ry="${r*.11}" fill="#b84a2a"/><circle cx="${cx+r*1.35}" cy="${cy-r*.6}" r="${r*.16}" fill="#e8e2cf"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#0b1433" stroke-width="1"/>`;
+    case "deep":return `<g transform="translate(${cx},${cy}) rotate(-20)"><ellipse rx="${r*1.25}" ry="${r*.45}" fill="#7c6cff" opacity=".35"/><ellipse rx="${r*.85}" ry="${r*.3}" fill="#b4a9ff" opacity=".5"/><ellipse rx="${r*.35}" ry="${r*.16}" fill="#fff6c9"/><path d="M0,0 C${r*.6},-${r*.5} ${r*1.1},-${r*.1} ${r*1.2},${r*.2}" fill="none" stroke="#d9d2ff" stroke-width="4" opacity=".7"/><path d="M0,0 C-${r*.6},${r*.5} -${r*1.1},${r*.1} -${r*1.2},-${r*.2}" fill="none" stroke="#d9d2ff" stroke-width="4" opacity=".7"/></g>`;
+  }
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#9aa3bd" stroke-width="3" stroke-dasharray="10 8"/><text x="${cx}" y="${cy+8}" text-anchor="middle" font-size="26" fill="#9aa3bd">?</text>`;
+}
+function stars(n,seed){let s=seed,o="";const r=()=>{s=(s*9301+49297)%233280;return s/233280};for(let i=0;i<n;i++)o+=`<circle cx="${(r()*640).toFixed(1)}" cy="${(r()*380).toFixed(1)}" r="${(0.6+r()*1.6).toFixed(2)}" fill="#fff" opacity="${(0.4+r()*0.6).toFixed(2)}"/>`;return o}
+function wrapSvg(text,max){const out=[];let line="";for(const ch of String(text)){if(line.length>=max&&ch!==" "){out.push(line);line=ch}else line+=ch}if(line)out.push(line);return out}
+function posterSVG(){
+  const col=(COLORS[S.color]||COLORS.violet)[1];
+  const name=S.mission||"(미션 이름을 지어 주세요)";
+  const tName=S.target?TARGETS[S.target].name:"탐사 대상";
+  const mName=S.method?METHODS[S.method].name:"탐사 방법";
+  const pur=(S.purposes.length?S.purposes:["탐사 목적"]).slice(0,3);
+  const team=`${S.sid} ${S.name}`;
+  let s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" font-family="Malgun Gothic, sans-serif"><rect width="640" height="380" rx="22" fill="#0b1433"/>${stars(110,7)}`;
+  s+=targetArt(S.target,470,190,105);
+  s+=`<rect x="24" y="24" width="${Math.min(360,40+name.length*22)}" height="10" rx="5" fill="${col}"/>`;
+  wrapSvg(name,14).slice(0,2).forEach((l,i)=>s+=`<text x="24" y="${78+i*40}" font-size="34" font-weight="800" fill="#fff">${esc(l)}</text>`);
+  const y0=wrapSvg(name,14).length>1?150:118;
+  s+=`<text x="24" y="${y0}" font-size="17" fill="#cfd5ff">${esc(tName)} 탐사 미션</text>`;
+  s+=`<g transform="translate(24,${y0+18})"><rect width="232" height="66" rx="14" fill="#ffffff" opacity=".1"/><g transform="translate(8,6)">${mIcon(S.method,54).replace('width="54" height="54"','width="54" height="54"')}</g><text x="72" y="30" font-size="13" fill="#cfd5ff">탐사 방법</text><text x="72" y="52" font-size="18" font-weight="800" fill="#fff">${esc(mName)}</text></g>`;
+  pur.forEach((p,i)=>{const w=24+p.length*15;s+=`<g transform="translate(24,${y0+100+i*38})"><rect width="${w}" height="30" rx="15" fill="${col}"/><text x="${w/2}" y="20" text-anchor="middle" font-size="14" font-weight="700" fill="#0b1433">${esc(p)}</text></g>`});
+  s+=`<text x="616" y="360" text-anchor="end" font-size="14" fill="#cfd5ff">${esc(team)}</text></svg>`;
+  return s;
+}
+
+/* ===== 화면 ===== */
+function stepDone(i){
+  const id=STEPS[i].id;
+  return {start:!!(S.sid&&S.name),open:!!S.openWrite.trim(),method:!!S.method,result:S.cases.length>0&&!!S.learned.trim(),
+    target:!!(S.target&&S.purposes.length&&S.purposeText.trim()),plan:!!(S.plan.trim()&&S.tech.trim()&&S.experts.length),
+    poster:!!S.mission.trim(),quiz:Object.keys(S.quiz).length===QUIZ.length,end:!!S.refl.trim()}[id];
+}
+function renderNav(){
+  $("#nav").innerHTML=STEPS.map((s,i)=>`<button data-i="${i}" class="${i===S.step?'on':''} ${stepDone(i)?'done':''}">${s.t}</button>`).join("");
+  $$("#nav button").forEach(b=>b.onclick=()=>go(+b.dataset.i));
+  const on=$("#nav .on");if(on)on.scrollIntoView({inline:"center",block:"nearest"});
+  $("#who").textContent=S.sid||S.name?`${S.sid} ${S.name}`:"";
+  $("#prevBtn").disabled=S.step===0;
+  $("#nextBtn").style.display=S.step===STEPS.length-1?"none":"";
+}
+function go(i){
+  if(i>0&&!(S.sid&&S.name)){toast("먼저 학번과 이름을 입력해 주세요.");i=0}
+  S.step=Math.max(0,Math.min(STEPS.length-1,i));save();render();window.scrollTo(0,0);
+}
+function render(){renderNav();const id=STEPS[S.step].id;$("#main").innerHTML=V[id]();bind(id)}
+
+const V={};
+V.start=()=>`<div class="card">
+  <span class="tag">교과서 289쪽 · 디지털+탐구</span>
+  <h2>나의 우주 탐사 계획 세우기</h2>
+  <p>지난 시간에 알아본 <b>우주 탐사 성과</b>를 바탕으로, 나만의 새로운 우주 탐사 계획을 세워요.</p>
+  <div class="window" style="margin:10px 0"><svg viewBox="0 0 640 200"><rect width="640" height="200" fill="#0b1433"/>${stars(60,3)}${targetArt("moon",120,110,55)}${targetArt("mars",300,90,40)}${targetArt("outer",470,120,48)}<g transform="translate(560,40) scale(1.2)">${mIcon("robot",54).replace(/<svg[^>]*>|<\/svg>/g,"")}</g></svg></div>
+  <p class="hint">① 탐사 방법 고르기 → ② 탐사 성과 조사 → ③ 탐사 대상과 목적 → ④ 탐사 계획과 기술 개발 계획 → ⑤ 미션 포스터로 발표</p>
+  <div class="grid2">
+    <div><label class="fl" for="sid">학번</label><input type="text" id="sid" inputmode="numeric" maxlength="6" value="${esc(S.sid)}"></div>
+    <div><label class="fl" for="nm">이름</label><input type="text" id="nm" maxlength="10" value="${esc(S.name)}"></div>
+  </div>
+  <div style="margin-top:16px"><button class="btn big" id="startGo">시작하기</button></div>
+</div>`;
+V.open=()=>`<div class="card">
+  <span class="tag">생각 열기</span>
+  <h2>미래의 인류는 달에서 어떤 생활을 하고 있을까?</h2>
+  <div class="window"><svg viewBox="0 0 640 210"><rect width="640" height="210" fill="#0b1433"/>${stars(70,11)}${targetArt("orbit",540,60,32)}<path d="M0,150 Q160,130 320,148 T640,140 V210 H0Z" fill="#b9bcc6"/><g fill="#8f929c"><ellipse cx="120" cy="178" rx="40" ry="8"/><ellipse cx="470" cy="185" rx="50" ry="9"/></g><path d="M230,150 A60,60 0 0 1 350,150Z" fill="#9fd0ff" opacity=".45" stroke="#e8f4ff" stroke-width="3"/><rect x="380" y="120" width="70" height="32" rx="8" fill="#e8e9ef"/><circle cx="400" cy="136" r="7" fill="#4c3fd1"/></svg></div>
+  <label class="fl" for="ow">달 기지에서의 하루를 상상해 짧게 써 보세요.</label>
+  <textarea id="ow" placeholder="예: 아침에 지구가 떠오르는 것을 보고, 온실에서 기른 채소를 먹고...">${esc(S.openWrite)}</textarea>
+  <h3>우주 탐사 기술은 이미 내 생활 속에 있어요</h3>
+  <p class="hint">지난 시간 '10대 명장면' 카드를 떠올리며, 내가 써 본 것을 모두 골라 보세요.</p>
+  <div class="chips">${LIFE.map(l=>`<button class="chip ${S.life.includes(l)?'on':''}" data-life="${l}">${l}</button>`).join("")}</div>
+</div>`;
+V.method=()=>{const ans=1;return `<div class="card">
+  <span class="tag">① 조사하기 1</span>
+  <h2>먼저 예측해 보세요</h2>
+  <div class="q">지구에도 큰 천체 망원경이 많은데, 왜 많은 돈을 들여 우주 망원경을 우주에 쏘아 올릴까?</div>
+  <div class="choices">${["천체에 더 가까이 다가가려고","지구 대기의 흔들림과 빛 공해 없이 선명하게 보려고","우주에서는 망원경을 더 싸게 만들 수 있어서"].map((o,i)=>{let c="";if(S.telQ>=0){c=i===ans?"right":(i===S.telQ?"wrong":"")}return `<button class="choice ${c}" data-tq="${i}"><span class="mk">${"ABC"[i]}</span>${o}</button>`}).join("")}</div>
+  ${S.telQ<0?"":`<div class="fb ${S.telQ===ans?'ok':'no'}">${S.telQ===ans?"정답!":"다시 생각해 봐요."} 지구 둘레 약 540 km 높이를 도는 허블 우주 망원경도 별에 '가까이' 간 것이 아니에요. 대기 밖에 있어서 <b>대기의 흔들림과 빛 공해 없이</b> 선명하게 볼 수 있는 거예요. 이처럼 탐사 방법마다 <b>잘하는 것과 한계</b>가 달라요.</div>`}
+</div>
+<div class="card">
+  <h2>나의 탐사 방법을 하나 고르세요</h2>
+  <div class="grid2">${Object.entries(METHODS).map(([k,m])=>`<button class="pick ${S.method===k?'on':''}" data-m="${k}"><div class="ttl">${mIcon(k)}${m.name}<span class="mark">✓ 선택</span></div><p style="margin:6px 0 0;font-size:.9rem">${m.can}</p><ul>${m.plus.map(x=>`<li class="plus">${x}</li>`).join("")}${m.minus.map(x=>`<li class="minus">${x}</li>`).join("")}</ul></button>`).join("")}</div>
+  <p class="hint">＋ 잘하는 점 · － 한계</p>
+</div>`};
+V.result=()=>{
+  const mine=CASES.filter(c=>c.m===S.method), base=CASES.filter(c=>c.m==="base"), other=CASES.filter(c=>c.m!==S.method&&c.m!=="base");
+  const card=c=>`<button class="case ${S.cases.includes(c.id)?'on':''}" data-c="${c.id}"><span class="mark">✓ 참고</span><span class="yr">${c.yr}</span><b>${c.t}</b><p>${c.d}</p></button>`;
+  return `<div class="card">
+  <span class="tag">② 조사하기 2</span>
+  <h2>${S.method?METHODS[S.method].name:"선택한 방법"}의 탐사 성과</h2>
+  ${S.method?"":`<div class="notice">먼저 ① 탐사 방법을 골라 주세요.</div>`}
+  <p class="hint">계획의 바탕이 될 성과를 <b>1개 이상</b> 눌러 '참고'로 표시하세요. 지난 시간 카드와 교과서를 함께 봐도 좋아요.</p>
+  <div class="grid2">${mine.map(card).join("")||`<p class="hint">아래 다른 성과에서 골라 보세요.</p>`}</div>
+  <h3>모든 우주 탐사의 바탕: 인공위성과 발사체</h3>
+  <div class="grid2">${base.map(card).join("")}</div>
+  <details style="margin-top:10px"><summary class="hint">다른 탐사 방법의 성과도 보기</summary><div class="grid2" style="margin-top:8px">${other.map(card).join("")}</div></details>
+  <label class="fl" for="learned">참고한 성과에서 알게 된 점과, 내 계획에 이어 갈 점은?</label>
+  <textarea id="learned" placeholder="예: 다누리가 달 자원 지도를 만들었으니, 나는 그 지도를 이용해 자원이 많은 곳에 착륙하겠다.">${esc(S.learned)}</textarea>
+</div>`};
+function warnings(){
+  const w=[],m=S.method,t=S.target;
+  if(!m||!t) return w;
+  if((m==="tel"||m==="stel")&&t!=="deep") w.push("망원경으로는 이 천체를 <b>멀리서 관측</b>할 수만 있어요. 착륙, 표본 채취, 기지 건설은 할 수 없어요.");
+  if(m==="tel") w.push("지상 망원경은 <b>대기와 빛 공해</b>의 영향을 받아요. 관측 장소를 어떻게 고를지 생각해 보세요.");
+  if(m==="crew"&&(t==="outer"||t==="deep")) w.push("현재 기술로는 사람이 가기에 <b>너무 멀어요</b>. 기술 개발 계획에 이 문제를 해결할 방법을 꼭 쓰세요.");
+  if(m==="crew"&&t==="mars") w.push("화성에는 <b>아직 사람이 간 적이 없어요</b>. 오랜 여행 동안 필요한 공기, 물, 음식과 안전을 기술 개발 계획에 넣으세요.");
+  if(m==="robot"&&t==="deep") w.push("보이저 1호도 발사 후 수십 년이 걸려서야 태양계 밖에 닿았어요. 탐사선이 <b>별까지 가기는 매우 어려워요</b>.");
+  if(m==="robot"&&(t==="outer"||t==="mars")) w.push("멀리 있는 탐사선은 지구와 신호를 주고받는 데 <b>시간이 오래 걸려요</b>. 탐사선이 스스로 판단하는 기술이 필요할 수 있어요.");
+  if(S.purposes.includes("사람이 머물 기지 만들기")&&m!=="crew") w.push("사람이 머물 기지를 만들려면 결국 <b>사람이 가야</b> 해요. 무인 탐사선으로 먼저 준비하는 단계라면 그렇게 써 주세요.");
+  return w;
+}
+V.target=()=>`<div class="card">
+  <span class="tag">③ 조사하기 2</span>
+  <h2>탐사 대상을 고르세요</h2>
+  <div class="grid3">${Object.entries(TARGETS).map(([k,t])=>`<button class="pick ${S.target===k?'on':''}" data-t="${k}"><div class="ttl"><svg viewBox="0 0 120 80" width="64" height="44" aria-hidden="true"><rect width="120" height="80" rx="10" fill="#0b1433"/>${targetArt(k,60,40,24)}</svg>${t.name}<span class="mark">✓</span></div><p style="margin:6px 0 0;font-size:.86rem">${t.info}</p></button>`).join("")}</div>
+</div>
+<div class="card">
+  <h2>탐사 목적을 고르세요 (여러 개 가능)</h2>
+  <div class="chips">${PURPOSES.map(p=>`<button class="chip ${S.purposes.includes(p)?'on':''}" data-p="${p}">${p}</button>`).join("")}</div>
+  <label class="fl" for="ptext">내 탐사의 목적을 한 문장으로 쓰세요.</label>
+  <input type="text" id="ptext" value="${esc(S.purposeText)}" placeholder="예: 화성의 옛 호수 바닥에서 생명체의 흔적을 찾는다.">
+  <div id="warnBox"></div>
+</div>`;
+function warnHTML(){const w=warnings();if(!S.method||!S.target)return "";return w.length?`<div class="alert"><b>⚠ 도전 과제</b> (이 조합을 골라도 괜찮아요. 대신 계획에서 해결 방법을 생각해 봐요.)<ul style="margin:4px 0 0;padding-left:20px">${w.map(x=>`<li>${x}</li>`).join("")}</ul></div>`:`<div class="okbox">✔ ${METHODS[S.method].name}(으)로 ${TARGETS[S.target].name}을(를) 탐사하는 데 큰 문제가 없어요.</div>`}
+V.plan=()=>{const tel=S.method==="tel"||S.method==="stel";return `<div class="card">
+  <span class="tag">④ 조사하기 3</span>
+  <h2>탐사 계획 세우기</h2>
+  <table class="self" style="margin-bottom:8px"><tr><th style="width:28%">탐사 성과</th><td style="text-align:left">${S.cases.map(id=>CASES.find(c=>c.id===id).t).join(", ")||"(② 단계에서 고르기)"}</td></tr>
+  <tr><th>탐사 방법 · 대상</th><td style="text-align:left">${S.method?METHODS[S.method].name:"-"} · ${S.target?TARGETS[S.target].name:"-"}</td></tr></table>
+  <h3>탐사 활동 고르기</h3>
+  <p class="hint">누르면 아래 '탐사 계획' 칸에 들어가요. 자세한 내용은 직접 고쳐 쓰세요.</p>
+  <div class="chips">${ACTS.map(a=>{const off=tel&&!ACT_SCOPE.includes(a);return `<button class="chip ${S.acts.includes(a)?'on':''}" data-a="${a}" ${off?'disabled style="opacity:.4" title="망원경으로는 할 수 없어요"':''}>${a}</button>`}).join("")}</div>
+  ${tel?`<p class="hint">※ 망원경은 멀리서 관측만 할 수 있어서 일부 활동은 고를 수 없어요.</p>`:""}
+  <label class="fl" for="plan">탐사 계획 (무엇을, 어떻게, 어떤 순서로)</label>
+  <textarea id="plan" style="min-height:120px" placeholder="• 다누리가 만든 자원 지도로 착륙 장소를 정한다.&#10;• 로버가 이동하며 얼음이 있는 흙을 채취한다.">${esc(S.plan)}</textarea>
+  <div id="warnBox2">${warnHTML()}</div>
+</div>
+<div class="card">
+  <h2>📚 우주 탐사 기술 읽고 고르기</h2>
+  <p class="hint">내 계획을 성공시키려면 어떤 기술이 더 필요할까요? 카드를 읽고 <b>1개 이상</b> 골라 보세요. <b>★ 추천</b>은 내가 고른 방법과 대상에 특히 필요한 기술이에요.</p>
+  <div class="grid2">${techCards()}</div>
+  <label class="fl" for="tech">기술 개발 계획 (고른 기술을 내 탐사에 어떻게 쓸지 이어 쓰세요)</label>
+  <textarea id="tech" style="min-height:110px" placeholder="예: • 현지 자원 활용 기술: 달 남극의 얼음에서 물과 산소를 만들어 기지에서 쓴다.">${esc(S.tech)}</textarea>
+</div>
+<div class="card">
+  <h2>함께할 전문가는? <span class="hint">(2명 이상)</span></h2>
+  <p class="hint">교과서 활동 길잡이: 다른 분야 전문가의 협력도 생각해 보세요.</p>
+  <div class="chips">${EXPERTS.map(x=>`<button class="chip ${S.experts.includes(x)?'on':''}" data-e="${x}">${x}</button>`).join("")}</div>
+  <label class="fl" for="ew">그 전문가가 필요한 까닭</label>
+  <input type="text" id="ew" value="${esc(S.expertWhy)}" placeholder="예: 의사 - 오랜 여행 동안 우주인의 건강을 지키려고">
+</div>`};
+V.poster=()=>`<div class="card">
+  <span class="tag">⑤ 발표하기</span>
+  <h2>미션 포스터 만들기</h2>
+  <p class="hint">교과서: 우주 탐사 계획을 <b>글과 그림</b>으로 정리하여 발표해 보자. 탐사 목적과 방법이 잘 드러나게!</p>
+  <label class="fl" for="mn">미션 이름</label>
+  <input type="text" id="mn" maxlength="24" value="${esc(S.mission)}" placeholder="예: 달 얼음 사냥꾼, 붉은 행성 생명 찾기">
+  <label class="fl">포인트 색</label>
+  <div class="colorrow">${Object.entries(COLORS).map(([k,[n,c]])=>`<button class="${S.color===k?'on':''}" data-col="${k}"><i style="background:${c}"></i>${n}</button>`).join("")}</div>
+  <div class="window" style="margin-top:12px" id="posterBox">${posterSVG()}</div>
+  <h3>발표 대본 (자동 정리)</h3>
+  <div class="result" id="script">${esc(scriptText())}</div>
+  <p class="hint">빈 곳이 있으면 앞 단계로 돌아가 채우세요. 내용은 자동으로 바뀌어요.</p>
+</div>`;
+function scriptText(){
+  return [`제 미션 이름은 '${S.mission||"___"}'입니다.`,
+  `저는 ${S.method?METHODS[S.method].name:"___"}(으)로 ${S.target?TARGETS[S.target].name:"___"}을(를) 탐사하려고 합니다.`,
+  `탐사 목적: ${S.purposeText||"___"}`,
+  `참고한 탐사 성과: ${S.cases.map(id=>CASES.find(c=>c.id===id).t).join(", ")||"___"}`,
+  `탐사 계획:\n${S.plan||"___"}`,
+  `더 개발해야 할 기술: ${S.tech||"___"}`,
+  `함께할 전문가: ${S.experts.join(", ")||"___"} (${S.expertWhy||"___"})`].join("\n");
+}
+V.quiz=()=>{const sc=QUIZ.filter((q,i)=>S.quiz[i]===q.a).length;return `<div class="card">
+  <span class="tag">꼭 기억할 용어</span>
+  <h2>📌 용어 카드 <span class="hint">(눌러서 뜻 확인)</span></h2>
+  <div class="terms">${TERMS.map(([a,b],i)=>`<button class="term ${S.terms.includes(i)?'flip':''}" data-term="${i}"><b>${a}</b><span class="front hint">뜻을 먼저 말해 보고 눌러 보세요 ↻</span><span class="back">${b}</span></button>`).join("")}</div>
+</div>
+<div class="card">
+  <h2>확인 퀴즈 <span class="hint">${Object.keys(S.quiz).length===QUIZ.length?`(${sc}/${QUIZ.length})`:""}</span></h2>
+  ${QUIZ.map((q,i)=>{const a=S.quiz[i];return `<div style="margin-bottom:14px"><p><b>${i+1}.</b> ${q.q}</p><div class="choices">${q.o.map((o,j)=>{let c="";if(a!==undefined){c=j===q.a?"right":(j===a?"wrong":"")}return `<button class="choice ${c}" data-qi="${i}" data-qj="${j}" ${a!==undefined?"disabled":""}><span class="mk">${j+1}</span>${o}</button>`}).join("")}</div></div>`}).join("")}
+  ${Object.keys(S.quiz).length?`<button class="btn ghost" id="qReset">퀴즈 다시 풀기</button>`:""}
+</div>`};
+V.end=()=>`<div class="card">
+  <span class="tag">스스로 평가하기</span>
+  <table class="self"><tr><th>영역</th><th colspan="3">나는…</th></tr>
+  ${SELF.map(([k,d],i)=>`<tr><td><b>${k}</b><br><span class="hint">${d}</span></td>${LEVELS.map(([sym,lb],j)=>`<td><button class="${S.self[i]===j?'on':''}" data-si="${i}" data-sj="${j}">${sym} ${lb}</button></td>`).join("")}</tr>`).join("")}</table>
+</div>
+<div class="card">
+  <h2>🌱 성찰</h2>
+  <label class="fl" for="refl">나의 탐사가 성공한다면, 내 생활에는 무엇이 달라질까요?</label>
+  <textarea id="refl">${esc(S.refl)}</textarea>
+  <label class="fl" for="junk">[과학 가치·태도] 수명이 다한 인공위성(우주 쓰레기)은 어떻게 처리하면 좋을까요? 안전하고 책임 있는 방법을 써 보세요.</label>
+  <textarea id="junk">${esc(S.junk)}</textarea>
+</div>
+<div class="card">
+  <h2>결과 카드 → 패들렛에 올리기</h2>
+  <p class="hint">① [이미지 저장]으로 포스터가 담긴 카드를 저장해 패들렛에 올리고, ② [텍스트 복사]로 내용을 게시물 본문에 붙여 넣어요.</p>
+  <div class="result" id="resText">${esc(resultText())}</div>
+  <div class="row" style="margin-top:10px"><button class="btn" id="pngBtn">🖼 이미지 저장</button><button class="btn soft" id="copyBtn">📋 텍스트 복사</button></div>
+</div>`;
+function resultText(){
+  const sc=QUIZ.filter((q,i)=>S.quiz[i]===q.a).length;
+  return [`[우주 탐사 계획] ${S.sid} ${S.name}`,
+  `■ 미션 이름: ${S.mission}`,`■ 탐사 방법: ${S.method?METHODS[S.method].name:""}`,`■ 탐사 대상: ${S.target?TARGETS[S.target].name:""}`,
+  `■ 탐사 목적: ${S.purposeText} [${S.purposes.join(", ")}]`,`■ 참고한 탐사 성과: ${S.cases.map(id=>CASES.find(c=>c.id===id).t).join(", ")}`,
+  `■ 알게 된 점: ${S.learned}`,`■ 탐사 계획:\n${S.plan}`,`■ 고른 우주 탐사 기술: ${S.techs.map(id=>TECHS.find(t=>t.id===id).n).join(", ")}`,`■ 기술 개발 계획:\n${S.tech}`,`■ 협력 전문가: ${S.experts.join(", ")} - ${S.expertWhy}`,
+  `■ 퀴즈: ${sc}/${QUIZ.length}`,`■ 스스로 평가: ${SELF.map(([k],i)=>`${k} ${S.self[i]!==undefined?LEVELS[S.self[i]][1]:"-"}`).join(" / ")}`,
+  `■ 성찰: ${S.refl}`,`■ 우주 쓰레기 처리: ${S.junk}`].join("\n");
+}
+
+/* ===== 이벤트 ===== */
+function bindText(sel,key,after){const el=$(sel);if(el)el.oninput=e=>{S[key]=e.target.value;save();renderNav();after&&after()}}
+function bind(id){
+  if(id==="start"){bindText("#sid","sid");bindText("#nm","name");
+    $("#startGo").onclick=()=>{S.sid=S.sid.trim();S.name=S.name.trim();if(!S.sid||!S.name){toast("학번과 이름을 입력해 주세요.");return}go(1)}}
+  if(id==="open"){bindText("#ow","openWrite");$$("[data-life]").forEach(b=>b.onclick=()=>{toggle(S.life,b.dataset.life);save();b.classList.toggle("on")})}
+  if(id==="method"){
+    $$("[data-tq]").forEach(b=>b.onclick=()=>{S.telQ=+b.dataset.tq;save();render()});
+    $$("[data-m]").forEach(b=>b.onclick=()=>{S.method=b.dataset.m;S.cases=S.cases.filter(c=>CASES.find(x=>x.id===c));save();render();toast(`${METHODS[S.method].name}을(를) 골랐어요.`)});
+  }
+  if(id==="result"){$$("[data-c]").forEach(b=>b.onclick=()=>{toggle(S.cases,b.dataset.c);save();b.classList.toggle("on");renderNav()});bindText("#learned","learned")}
+  if(id==="target"){
+    const upd=()=>{$("#warnBox").innerHTML=warnHTML()};upd();
+    $$("[data-t]").forEach(b=>b.onclick=()=>{S.target=b.dataset.t;save();$$("[data-t]").forEach(x=>x.classList.toggle("on",x===b));upd();renderNav()});
+    $$("[data-p]").forEach(b=>b.onclick=()=>{toggle(S.purposes,b.dataset.p);save();b.classList.toggle("on");upd();renderNav()});
+    bindText("#ptext","purposeText");
+  }
+  if(id==="plan"){
+    $$("[data-a]").forEach(b=>b.onclick=()=>{const a=b.dataset.a;toggle(S.acts,a);
+      if(S.acts.includes(a)){S.plan=(S.plan.trim()?S.plan.trim()+"\n":"")+"• "+a+": "}else{S.plan=S.plan.split("\n").filter(l=>!l.startsWith("• "+a)).join("\n")}
+      save();b.classList.toggle("on");$("#plan").value=S.plan;renderNav()});
+    bindText("#plan","plan");bindText("#tech","tech");bindText("#ew","expertWhy");
+    $$("[data-tech]").forEach(b=>b.onclick=()=>{const x=TECHS.find(t=>t.id===b.dataset.tech);toggle(S.techs,x.id);
+      if(S.techs.includes(x.id)){S.tech=(S.tech.trim()?S.tech.trim()+"\n":"")+"• "+x.n+": ";toast(`'${x.n}'을(를) 골랐어요. 아래 칸에 어떻게 쓸지 이어 쓰세요.`)}
+      else{S.tech=S.tech.split("\n").filter(l=>!l.startsWith("• "+x.n)).join("\n")}
+      save();b.classList.toggle("on");$("#tech").value=S.tech;renderNav()});
+    $$("[data-e]").forEach(b=>b.onclick=()=>{toggle(S.experts,b.dataset.e);save();b.classList.toggle("on");renderNav()});
+  }
+  if(id==="poster"){
+    const upd=()=>{$("#posterBox").innerHTML=posterSVG();$("#script").textContent=scriptText()};
+    bindText("#mn","mission",upd);
+    $$("[data-col]").forEach(b=>b.onclick=()=>{S.color=b.dataset.col;save();$$("[data-col]").forEach(x=>x.classList.toggle("on",x===b));upd()});
+  }
+  if(id==="quiz"){
+    $$("[data-term]").forEach(b=>b.onclick=()=>{toggle(S.terms,+b.dataset.term);save();b.classList.toggle("flip")});
+    $$("[data-qi]").forEach(b=>b.onclick=()=>{S.quiz[b.dataset.qi]=+b.dataset.qj;save();render()});
+    const r=$("#qReset");if(r)r.onclick=()=>{S.quiz={};save();render()};
+  }
+  if(id==="end"){
+    $$("[data-si]").forEach(b=>b.onclick=()=>{S.self[b.dataset.si]=+b.dataset.sj;save();$$(`[data-si="${b.dataset.si}"]`).forEach(x=>x.classList.toggle("on",x===b));$("#resText").textContent=resultText()});
+    bindText("#refl","refl",()=>$("#resText").textContent=resultText());
+    bindText("#junk","junk",()=>$("#resText").textContent=resultText());
+    $("#copyBtn").onclick=copyText;$("#pngBtn").onclick=savePNG;
+  }
+}
+function copyText(){
+  const t=resultText(),done=()=>toast("복사했어요. 패들렛 게시물에 붙여 넣으세요.");
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(done,fb);else fb();
+  function fb(){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");done()}catch(e){toast("복사가 안 되면 글을 길게 눌러 직접 복사하세요.")}ta.remove()}
+}
+function wrapLines(ctx,text,maxW){const out=[];String(text).split("\n").forEach(p=>{let l="";for(const ch of p){if(ctx.measureText(l+ch).width>maxW&&l){out.push(l);l=ch}else l+=ch}out.push(l)});return out}
+function savePNG(){
+  const W=900,pad=36,cv=document.createElement("canvas"),ctx=cv.getContext("2d");
+  ctx.font="16px Malgun Gothic";
+  const lines=wrapLines(ctx,resultText().split("\n").slice(1).join("\n"),W-pad*2);
+  const ph=Math.round((W-pad*2)*380/640);
+  const H=110+ph+30+lines.length*24+pad;
+  cv.width=W;cv.height=H;
+  ctx.fillStyle="#f5f7ff";ctx.fillRect(0,0,W,H);
+  ctx.fillStyle="#fff";ctx.fillRect(16,16,W-32,H-32);ctx.strokeStyle="#dde3f3";ctx.lineWidth=2;ctx.strokeRect(16,16,W-32,H-32);
+  ctx.fillStyle="#4c3fd1";ctx.font="bold 26px Malgun Gothic";ctx.fillText("🚀 우주 탐사 계획",pad,64);
+  ctx.fillStyle="#1b2140";ctx.font="bold 18px Malgun Gothic";ctx.fillText(`${S.sid} ${S.name}`,pad,94);
+  const img=new Image();
+  img.onload=()=>{ctx.drawImage(img,pad,108,W-pad*2,ph);finish()};
+  img.onerror=finish;
+  img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(posterSVG());
+  function finish(){
+    let y=108+ph+40;
+    lines.forEach(l=>{ctx.font=(l.startsWith("■")?"bold ":"")+"16px Malgun Gothic";ctx.fillStyle=l.startsWith("■")?"#4c3fd1":"#1b2140";ctx.fillText(l,pad,y);y+=24});
+    try{const a=document.createElement("a");a.download=`우주탐사계획_${S.sid}_${S.name}.png`;a.href=cv.toDataURL("image/png");document.body.appendChild(a);a.click();a.remove();toast("이미지를 저장했어요. 패들렛에 올려 주세요.")}
+    catch(e){toast("이미지 저장이 안 되면 [텍스트 복사]를 이용하세요.")}
+  }
+}
+function modal(h){$("#modalBox").innerHTML=h;$("#modal").classList.add("show")}
+function closeModal(){$("#modal").classList.remove("show")}
+$("#prevBtn").onclick=()=>go(S.step-1);
+$("#nextBtn").onclick=()=>go(S.step+1);
+$("#demoBtn").onclick=()=>{S.demo=!S.demo;document.body.classList.toggle("demo",S.demo);save()};
+$("#resetBtn").onclick=()=>{modal(`<h3 style="margin-top:0">처음부터 다시 할까요?</h3><p>입력한 내용이 모두 지워져요.</p><div class="row" style="margin-top:12px"><button class="btn ghost" id="mNo" style="flex:1">취소</button><button class="btn" id="mYes" style="flex:1;background:#c92a2a">모두 지우기</button></div>`);
+  $("#mNo").onclick=closeModal;$("#mYes").onclick=()=>{S=blank();try{localStorage.removeItem(KEY)}catch(e){}closeModal();render()}};
+$("#modal").onclick=e=>{if(e.target.id==="modal")closeModal()};
+document.body.classList.toggle("demo",!!S.demo);
+render();
+</script>
+</body>
+</html>
